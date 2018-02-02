@@ -1,6 +1,6 @@
 lib_LTLIBRARIES=libpll.la
 
-AM_CFLAGS=-Wall -Wsign-compare -D_GNU_SOURCE -std=c99 -O3 -fPIC
+AM_CPPFLAGS=-Wall -Wsign-compare -D_GNU_SOURCE -std=c++11 -O3 -fPIC -mfma -mavx2 -mavx -msse3 -fpermissive
 
 LIBPLLHEADERS=\
 pll.h
@@ -9,81 +9,54 @@ AM_YFLAGS = -d -p `${SED} -n 's/.*_\(.*\)/pll_\1_/p' <<<"$*"`
 AM_LFLAGS = -P `${SED} -n 's/.*_\(.*\)/pll_\1_/p' <<<"$*"` -o lex.yy.c
 
 libpll_la_SOURCES=\
-fasta.c \
-gamma.c \
-likelihood.c \
-list.c \
-maps.c \
-models.c \
-pll.c \
-output.c \
-utree.c \
-rtree.c \
-derivatives.c \
-partials.c \
-compress.c \
-utree_moves.c \
-utree_svg.c \
-parsimony.c \
-core_derivatives.c \
-core_partials.c \
-core_pmatrix.c \
-core_likelihood.c \
+fasta.cpp \
+gamma.cpp \
+likelihood.cpp \
+list.cpp \
+maps.cpp \
+models.cpp \
+pll.cpp \
+output.cpp \
+utree.cpp \
+rtree.cpp \
+derivatives.cpp \
+partials.cpp \
+compress.cpp \
+utree_moves.cpp \
+utree_svg.cpp \
+parsimony.cpp \
+core_derivatives.cpp \
+core_partials.cpp \
+core_pmatrix.cpp \
+core_likelihood.cpp \
 parse_utree.y \
 parse_rtree.y \
 lex_utree.l \
 lex_rtree.l \
-fast_parsimony.c \
-stepwise.c \
-random.c \
-phylip.c \
-hardware.c \
-repeats.c 
+fast_parsimony.cpp \
+stepwise.cpp \
+random.cpp \
+phylip.cpp \
+hardware.cpp \
+core_partials_avx2.cpp \
+core_derivatives_avx2.cpp \
+core_pmatrix_avx2.cpp \
+core_likelihood_avx2.cpp \
+fast_parsimony_avx2.cpp \
+core_partials_avx.cpp \
+core_derivatives_avx.cpp \
+core_pmatrix_avx.cpp \
+core_likelihood_avx.cpp \
+fast_parsimony_avx.cpp\
+core_partials_sse.cpp \
+core_derivatives_sse.cpp \
+core_likelihood_sse.cpp \
+core_pmatrix_sse.cpp \
+fast_parsimony_sse.cpp\
+repeats.cpp 
 
-libpll_la_CFLAGS = $(AM_CFLAGS)
+libpll_la_CPPFLAGS = $(AM_CPPFLAGS)
 
-# To allow cross-compilation, those SIMD flags will be used for the respective source files only  
-AVX2FLAGS=-mfma -mavx2
-AVXFLAGS=-mavx
-SSEFLAGS=-msse3
-
-SIMD_KERNELS=
-
-if HAVE_AVX2
- SIMD_KERNELS+=libsimd_avx2.la
- libsimd_avx2_la_CFLAGS=$(AM_CFLAGS) $(AVX2FLAGS)
- libsimd_avx2_la_SOURCES=\
- core_partials_avx2.c \
- core_derivatives_avx2.c \
- core_pmatrix_avx2.c \
- core_likelihood_avx2.c \
- fast_parsimony_avx2.c
-endif
-
-if HAVE_AVX
-SIMD_KERNELS+=libsimd_avx.la
-libsimd_avx_la_CFLAGS=$(AM_CFLAGS) $(AVXFLAGS)
-libsimd_avx_la_SOURCES=\
-core_partials_avx.c \
-core_derivatives_avx.c \
-core_pmatrix_avx.c \
-core_likelihood_avx.c \
-fast_parsimony_avx.c
-endif
-
-if HAVE_SSE3
-SIMD_KERNELS+=libsimd_sse.la
-libsimd_sse_la_CFLAGS=$(AM_CFLAGS) $(SSEFLAGS)
-libsimd_sse_la_SOURCES=\
-core_partials_sse.c \
-core_derivatives_sse.c \
-core_likelihood_sse.c \
-core_pmatrix_sse.c \
-fast_parsimony_sse.c
-endif
-
-libpll_la_LIBADD = $(SIMD_KERNELS)
-noinst_LTLIBRARIES = $(SIMD_KERNELS) 
 
 # This is the version information for libtool and not the libpll version. For
 #  more information see:

@@ -4,17 +4,17 @@
 AC_PREREQ([2.63])
 AC_INIT([libpll], [0.3.2], [Tomas.Flouri@h-its.org])
 AM_INIT_AUTOMAKE([subdir-objects])
-AC_LANG([C])
-AC_CONFIG_SRCDIR([src/pll.c])
+AC_LANG([C++])
+AC_CONFIG_SRCDIR([src/pll.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
 
 # set default gcc options
-CFLAGS='-g'
+CPPFLAGS='-g'
 
 # Checks for programs.
-AC_PROG_CC
+AC_PROG_CPP
 AC_PROG_LIBTOOL
 AC_PROG_LEX
 AC_PROG_YACC
@@ -130,8 +130,8 @@ AC_MSG_RESULT([
   $PACKAGE $VERSION
 
     Target:    $host_os $host_cpu
-    Compiler:  ${CC}
-    CFLAGS:    ${CFLAGS} ${CPPFLAGS}
+    Compiler:  ${CXX}
+    CFLAGS:    ${CPPFLAGS} 
     LIBS:      ${LIBS} ${LDFLAGS}
 
   Continue with 'make' command
