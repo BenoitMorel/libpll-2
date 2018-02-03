@@ -20,7 +20,7 @@
 */
 
 #include "pll.h"
-
+#include "core_partials.cxx"
 
 
 PLL_EXPORT void pll_core_create_lookup_avx(unsigned int states,
@@ -2269,6 +2269,7 @@ PLL_EXPORT void pll_core_update_partial_ii_avx(unsigned int states,
                                                const unsigned int * right_scaler,
                                                unsigned int attrib)
 {
+  
   unsigned int i,j,k,n;
 
   const double * lmat;
@@ -2280,6 +2281,11 @@ PLL_EXPORT void pll_core_update_partial_ii_avx(unsigned int states,
   /* dedicated functions for 4x4 matrices */
   if (states == 4)
   {
+    pll_core_template_update_partial_ii<4, TemplateAVX> (
+      sites, rate_cats, parent_clv, parent_scaler, 
+      left_clv, right_clv, left_matrix, right_matrix, 
+      left_scaler, right_scaler, attrib);
+    return;
     pll_core_update_partial_ii_4x4_avx(sites,
                                        rate_cats,
                                        parent_clv,
