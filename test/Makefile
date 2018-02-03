@@ -17,9 +17,9 @@
 #    Exelixis Lab, Heidelberg Instutute for Theoretical Studies
 #    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 
-CC = gcc
-CFLAGS = -L. -g -O3 -Wall -std=c99
-CLIBS = -lpll -lm
+CC = g++
+CFLAGS = -L../src/.libs/ -g -O3 -Wall -std=c++11
+CLIBS =  -lpll -lm
 
 CFILES = $(shell find src -name '*.c' ! -name 'common.c')
 

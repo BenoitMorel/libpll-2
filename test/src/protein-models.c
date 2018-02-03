@@ -56,7 +56,7 @@
       pll_aa_freqs_stmtrev
       };
 
-  static char * prot_model_names[N_PROT_MODELS] =
+  static const char * prot_model_names[N_PROT_MODELS] =
       {
           "Dayhoff", "LG",
           "DCMut", "JTT",
