@@ -143,10 +143,10 @@ PLL_EXPORT void pll_core_create_lookup_20x20_avx(unsigned int rate_cats,
   double * lookupl = NULL;
   double * lookupr = NULL;
 
-  lookupl = pll_aligned_alloc(span_padded*maxstates*sizeof(double),
+  lookupl = (double*)pll_aligned_alloc(span_padded*maxstates*sizeof(double),
                               PLL_ALIGNMENT_AVX);
 
-  lookupr = pll_aligned_alloc(span_padded*maxstates*sizeof(double),
+  lookupr = (double*)pll_aligned_alloc(span_padded*maxstates*sizeof(double),
                               PLL_ALIGNMENT_AVX);
 
   if (!lookupl || !lookupr)
@@ -272,10 +272,10 @@ PLL_EXPORT void pll_core_create_lookup_4x4_avx(unsigned int rate_cats,
   double * lookupl = NULL;
   double * lookupr = NULL;
 
-  lookupl = pll_aligned_alloc(span*maxstates*sizeof(double),
+  lookupl = (double*)pll_aligned_alloc(span*maxstates*sizeof(double),
                               PLL_ALIGNMENT_AVX);
 
-  lookupr = pll_aligned_alloc(span*maxstates*sizeof(double),
+  lookupr = (double*)pll_aligned_alloc(span*maxstates*sizeof(double),
                               PLL_ALIGNMENT_AVX);
 
   if (!lookupl || !lookupr)
@@ -1337,7 +1337,7 @@ PLL_EXPORT void pll_core_update_partial_ti_4x4_avx(unsigned int sites,
 
   /* precompute a lookup table of four values per entry (one for each state),
      for all 16 states (including ambiguities) and for each rate category. */
-  double * lookup = pll_aligned_alloc(64*rate_cats*sizeof(double),
+  double * lookup = (double*)pll_aligned_alloc(64*rate_cats*sizeof(double),
                                       PLL_ALIGNMENT_AVX);
   if (!lookup)
   {
@@ -1533,7 +1533,7 @@ PLL_EXPORT void pll_core_update_partial_ti_20x20_avx(unsigned int sites,
 
   /* precompute a lookup table of four values per entry (one for each state),
      for all 16 states (including ambiguities) and for each rate category. */
-  double * lookup = pll_aligned_alloc(maxstates*span_padded*sizeof(double),
+  double * lookup = (double*)pll_aligned_alloc(maxstates*span_padded*sizeof(double),
                                       PLL_ALIGNMENT_AVX);
   if (!lookup)
   {
