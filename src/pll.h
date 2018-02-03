@@ -67,9 +67,14 @@
 #define PLL_MIN(a,b) ((a) < (b) ? (a) : (b))
 #define PLL_MAX(a,b) ((a) > (b) ? (a) : (b))
 #define PLL_SWAP(x,y) do { __typeof__ (x) _t = x; x = y; y = _t; } while(0)
+
+
+#ifdef POUPILOU
 #define PLL_STAT(x) ((pll_hardware.init || pll_hardware_probe()) \
                      && pll_hardware.x)
-
+#else 
+#define PLL_STAT(x) (1)
+#endif
 /* constants */
 
 #define PLL_FAILURE  0
@@ -2562,6 +2567,7 @@ PLL_EXPORT extern int pll_setstate_r(char * __statebuf,
                                      struct pll_random_data * __buf);
 
 /* functions in hardware.c */
+#ifdef POUPILOU
 
 PLL_EXPORT int pll_hardware_probe(void);
 
@@ -2569,6 +2575,7 @@ PLL_EXPORT void pll_hardware_dump();
 
 PLL_EXPORT void pll_hardware_ignore();
 
+#endif
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

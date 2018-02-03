@@ -28,6 +28,8 @@
     https://github.com/xflouris/libpll/issues/138
 
 */
+#ifdef POUPILOU
+
 #if (defined(__APPLE__)) || \
     (!defined(__clang__) && defined(__GNUC__) && (__GNUC__ < 4 || \
       (__GNUC__ == 4 && __GNUC_MINOR__ < 8))) || \
@@ -187,3 +189,4 @@ PLL_EXPORT void pll_hardware_ignore()
   pll_hardware.avx_present     = 1;
   pll_hardware.avx2_present    = 1;
 }
+#endif
