@@ -25,7 +25,7 @@ WARN=-Wall -Wsign-compare
 CC = g++
 INCLUDEDIR=../src/
 LINKDIR=../src/.libs/
-CFLAGS = -Wall -g -O3 $(WARN) -I$(INCLUDEDIR)
+CFLAGS = -Wall -g -O3 -std=c++11 $(WARN) -I$(INCLUDEDIR)
 LINKFLAGS = -L$(LINKDIR) -I$(INCLUDEDIR) $(PROFILING)
 LIBS=-lpll -lm
 PROG=benchmark

@@ -20,16 +20,14 @@ int main()
   }
   printf("Benchmark results will be stored in %s\n", name);
   
-  Dataset *hbg011004 = load_dataset("data/HBG011004.raxml.bestTree",
+  std::shared_ptr<Dataset> hbg011004 = loadDataset("data/HBG011004.raxml.bestTree",
       "data/HBG011004.fasta",
       PLL_ATTRIB_ARCH_AVX,
       AF_FASTA,
       AT_DNA);
 
-
-
-
-  destroy_dataset(hbg011004);
-  
   return 0;
 }
+
+
+

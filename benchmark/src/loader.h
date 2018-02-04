@@ -3,15 +3,18 @@
 
 #include "pll.h"
 #include "constants.h"
+#include <memory>
+#include <string>
 
-typedef struct {
-  const char *name;
+
+struct Dataset {
+  std::string name;
   pll_partition_t *partition;
   pll_utree_t *tree;
-} Dataset;
+} ;
 
-Dataset *load_dataset(const char *newick_filename,
-    const char *alignment_filename,
+std::shared_ptr<Dataset> loadDataset(const std::string &newickFilename,
+    const std::string &alignmentFilename,
     unsigned int attribute,
     AlignmentFormat format,
     AlphabetType alphabet);
