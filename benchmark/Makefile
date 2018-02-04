@@ -22,7 +22,7 @@ PROFILING=-g
 # Compiler warnings
 WARN=-Wall -Wsign-compare
 
-CC = gcc
+CC = g++
 INCLUDEDIR=../src/
 LINKDIR=../src/.libs/
 CFLAGS = -Wall -g -O3 $(WARN) -I$(INCLUDEDIR)
@@ -32,12 +32,12 @@ PROG=benchmark
 
 all: $(PROG)
 
-OBJS=src/benchmark.o src/loader.c
+OBJS=src/benchmark.o src/loader.o
 
 $(PROG): $(OBJS)
 	$(CC) $(LINKFLAGS) -o $@ $+ $(LIBS) $(LDFLAGS)
 
-%.o: %.c
+%.o: %.cpp
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 clean:

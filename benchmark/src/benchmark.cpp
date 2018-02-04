@@ -23,8 +23,8 @@ int main()
   Dataset *hbg011004 = load_dataset("data/HBG011004.raxml.bestTree",
       "data/HBG011004.fasta",
       PLL_ATTRIB_ARCH_AVX,
-      AT_DNA,
-      AF_FASTA);
+      AF_FASTA,
+      AT_DNA);
 
 
 

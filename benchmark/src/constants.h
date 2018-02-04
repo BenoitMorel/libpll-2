@@ -1,16 +1,16 @@
 #ifndef _BENCH_CONSTANTS_
 #define _BENCH_CONSTANTS_
 
-typedef enum  {
+enum AlignmentFormat {
   AF_FASTA,
   AF_PHYLIP_SEQUENTIAL,
   AF_PHYLIP_INTERLEAVED
-} AlignmentFormat;
+};
 
-typedef enum {
+enum AlphabetType{
   AT_DNA,
   AT_PROT 
-} AlphabetType;
+};
 
 
 
