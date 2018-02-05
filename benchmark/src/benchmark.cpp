@@ -38,13 +38,28 @@ int main()
   }
   printf("Benchmark results will be stored in %s\n", name);
   
+  unsigned int attribute = PLL_ATTRIB_ARCH_AVX | PLL_ATTRIB_TEMPLATES;
+
   std::shared_ptr<Dataset> hbg011004 = loadDataset("data/HBG011004.raxml.bestTree",
       "data/HBG011004.fasta",
-      PLL_ATTRIB_ARCH_AVX,
+      attribute,
       AF_FASTA,
       AT_DNA);
-  bench_partials(hbg011004, 1000);
-  //bench_likelihood(hbg011004);
+  
+  std::shared_ptr<Dataset> family_149 = loadDataset("data/family_149.newick",
+      "data/family_149.fasta",
+      attribute,
+      AF_FASTA,
+      AT_PROT);
+  
+  
+  std::cout << "bench DNA " << std::endl;
+  bench_partials(hbg011004, 300);
+  bench_likelihood(hbg011004);
+
+  std::cout << "bench PROT " << std::endl;
+  bench_partials(family_149, 10);
+  bench_likelihood(family_149);
 
   return 0;
 }
