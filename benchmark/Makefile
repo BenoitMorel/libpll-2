@@ -32,7 +32,7 @@ PROG=benchmark
 
 all: $(PROG)
 
-OBJS=src/benchmark.o src/loader.o
+OBJS=src/benchmark.o src/loader.o src/kernels.o
 
 $(PROG): $(OBJS)
 	$(CC) $(LINKFLAGS) -o $@ $+ $(LIBS) $(LDFLAGS)

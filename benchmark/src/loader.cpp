@@ -5,6 +5,7 @@
 #include <vector>
 #include <fstream>
 const unsigned int DEFAULT_BL = 0.000001;
+const unsigned int RATE_CATS = 4;
 
 class LibpllException: public std::exception {
 public:
@@ -35,7 +36,10 @@ struct pll_sequence {
 using pll_sequence_ptr = std::shared_ptr<pll_sequence>;
 using pll_sequences = std::vector<pll_sequence_ptr>;
 
-
+static int cb_full_traversal(pll_unode_t * node)
+{
+    return 1;
+}
 
 void setMissingBL(pll_utree_t * tree, 
     double length)
@@ -169,12 +173,18 @@ std::shared_ptr<Dataset> loadDataset(const std::string &newickFilename,
   }
   sequences.clear();
   // todobenoit do not use hardcoded values
-  double subst[6] = {1, 1, 1, 1, 1, 1};
   double gammaRates[4] = {0.136954, 0.476752, 1, 2.38629};
-  double frequencies[4] = {0.25, 0.25, 0.25, 0.25}; 
   pll_set_category_rates(partition, gammaRates);
-  pll_set_frequencies(partition, 0, frequencies);
-  pll_set_subst_params(partition, 0, subst);
+  
+  if (statesNumber == 4) {
+    double subst[6] = {1, 1, 1, 1, 1, 1};
+    double frequencies[4] = {0.25, 0.25, 0.25, 0.25}; 
+    pll_set_frequencies(partition, 0, frequencies);
+    pll_set_subst_params(partition, 0, subst);
+  } else {
+    pll_set_frequencies(partition, 0, pll_aa_freqs_dayhoff);
+    pll_set_subst_params(partition, 0, pll_aa_rates_dayhoff);
+  }
 
   // tree
   std::ifstream t(newickFilename);
@@ -194,11 +204,45 @@ std::shared_ptr<Dataset> loadDataset(const std::string &newickFilename,
       node->clv_index = tipsLabelling[node->label];
     }
   }
- 
+
+  // operations
+  unsigned int params_indices[RATE_CATS] = {0,0,0,0};
+  unsigned int nodes_count = utree->tip_count + utree->inner_count;
+  unsigned int branch_count = nodes_count - 1;
+  pll_unode_t * root = utree->nodes[nodes_count - 1];
+  unsigned int traversal_size;
+  unsigned int matrix_count;
+  unsigned int ops_count;
+  pll_unode_t **travbuffer = (pll_unode_t **)malloc(nodes_count * sizeof(pll_unode_t *));
+  double *branch_lengths = (double *)malloc(branch_count * sizeof(double));
+  unsigned int *matrix_indices = (unsigned int *)malloc(branch_count * sizeof(unsigned int));
+  pll_operation_t *operations = (pll_operation_t *)malloc(utree->inner_count * sizeof(pll_operation_t));
+  pll_utree_traverse(root,
+        PLL_TREE_TRAVERSE_POSTORDER,
+        cb_full_traversal,
+        travbuffer,
+        &traversal_size);
+  pll_utree_create_operations(travbuffer,
+      traversal_size,
+      branch_lengths,
+      matrix_indices,
+      operations,
+      &matrix_count,
+      &ops_count);
+  pll_update_prob_matrices(partition,
+      params_indices,
+      matrix_indices,
+      branch_lengths,
+      matrix_count);
+
+
   std::shared_ptr<Dataset> dataset(new Dataset());
   dataset->name = "dataset"; //todobenoit
   dataset->partition = partition;
   dataset->tree = utree;
+  dataset->operations = operations;
+  dataset->ops_count = ops_count;
+  dataset->root = root;
   return dataset;
 }
   
