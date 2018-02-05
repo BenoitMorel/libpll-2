@@ -6,10 +6,22 @@
 #include "constants.h"
 #include "kernels.h"
 #include <iostream>
+#include <chrono>
 
-void bench_partials(std::shared_ptr<Dataset> dataset)
+using namespace std;
+using milli = std::chrono::milliseconds;
+
+void bench_partials(std::shared_ptr<Dataset> dataset, unsigned int iterations)
 {
-  update_all_partials(dataset);  
+  auto start = std::chrono::system_clock::now();
+
+  for (unsigned int i = 0; i < iterations; ++i) {
+    update_all_partials(dataset);  
+  }
+
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<double>  elapsed_seconds = end - start;
+  std::cout << elapsed_seconds.count() << "s " << std::endl;
 }
 
 void bench_likelihood(std::shared_ptr<Dataset> dataset)
@@ -31,8 +43,8 @@ int main()
       PLL_ATTRIB_ARCH_AVX,
       AF_FASTA,
       AT_DNA);
-  bench_partials(hbg011004);
-  bench_likelihood(hbg011004);
+  bench_partials(hbg011004, 1000);
+  //bench_likelihood(hbg011004);
 
   return 0;
 }
