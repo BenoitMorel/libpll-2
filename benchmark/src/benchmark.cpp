@@ -29,16 +29,18 @@ void bench_likelihood(std::shared_ptr<Dataset> dataset)
   std::cout << compute_likelihood(dataset) << std::endl;  
 }
 
-int main()
+int main(int argc, char **argv)
 {
-  char name[] = "/tmp/fileXXXXXX";
-  int fd = mkstemp(name);
-  if (!fd) {
-    exit(1);
+  if (argc != 2) {
+    std::cerr << "Invalid syntax" << std::endl;
   }
-  printf("Benchmark results will be stored in %s\n", name);
-  
-  unsigned int attribute = PLL_ATTRIB_ARCH_AVX | PLL_ATTRIB_TEMPLATES;
+  bool useTemplates = atoi(argv[1]);
+
+  unsigned int attribute = PLL_ATTRIB_ARCH_AVX;
+  if (useTemplates) { 
+    attribute |= PLL_ATTRIB_TEMPLATES;
+    std::cout << "Templates implementation" << std::endl;
+  }
 
   std::shared_ptr<Dataset> hbg011004 = loadDataset("data/HBG011004.raxml.bestTree",
       "data/HBG011004.fasta",

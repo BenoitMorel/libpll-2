@@ -21,7 +21,6 @@ void pll_core_template_update_partial_ii(unsigned int sites,
                                                unsigned int attrib)
 {
   unsigned int i,j,k,n;
-
   const double * lmat;
   const double * rmat;
 
