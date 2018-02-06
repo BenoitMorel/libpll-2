@@ -18,6 +18,40 @@ class TemplateSSE {
 
 };
 
+template <class VEC, unsigned int p>
+class FOR {
+  static void plop(typename VEC::reg &v_mat, 
+      typename VEC::reg v_terma[],
+      typename VEC::reg v_termb[],
+      double *& lm,
+      double *& rm,
+      typename VEC::reg &v_lclv,
+      typename VEC::reg &v_rclv
+      ) 
+  {
+    v_mat    = VEC::load(lm[p]);
+    v_terma[p] = VEC::add(v_terma[p], VEC::mult(v_mat,v_lclv));
+    v_mat    = VEC::load(rm[p]);
+    v_termb[p] = VEC::add(v_termb[p], VEC::mult(v_mat,v_rclv));
+    lm[p] += VEC::vecsize;
+    rm[p] += VEC::vecsize;
+    FOR<VEC, p-1>::plop(v_mat, v_terma, v_termb, lm, rm, v_lclv, v_rclv);
+  }
+};
+
+template <class VEC>
+class FOR<VEC, 0> {
+  static void plop(typename VEC::reg &v_mat, 
+      typename VEC::reg terma[],
+      typename VEC::reg termb[],
+      typename VEC::reg lm[],
+      typename VEC::reg rm[],
+      typename  VEC::reg &v_lclv,
+      typename VEC::reg &v_rclv
+      ) 
+  {}
+};
+
 // <4, typename VEC::reg
 template <int STATES, class VEC>
 void pll_core_template_update_partial_ii(unsigned int sites,
@@ -93,42 +127,18 @@ void pll_core_template_update_partial_ii(unsigned int sites,
           v_rclv    = VEC::load(right_clv+j);
 
           /* row 0 */
-          v_mat    = VEC::load(lm[0]);
-          v_terma[0] = VEC::add(v_terma[0], VEC::mult(v_mat,v_lclv));
-          v_mat    = VEC::load(rm[0]);
-          v_termb[0] = VEC::add(v_termb[0], VEC::mult(v_mat,v_rclv));
-          lm[0] += VEC::vecsize;
-          rm[0] += VEC::vecsize;
+          FOR<VEC, 4>::plop(v_mat, v_terma, v_termb, lm, rm, v_lclv, v_rclv);
+          /*
+          for (unsigned int p = 0; p < 4; ++p) {
+            v_mat    = VEC::load(lm[p]);
+            v_terma[p] = VEC::add(v_terma[p], VEC::mult(v_mat,v_lclv));
+            v_mat    = VEC::load(rm[p]);
+            v_termb[p] = VEC::add(v_termb[p], VEC::mult(v_mat,v_rclv));
+            lm[p] += VEC::vecsize;
+            rm[p] += VEC::vecsize;
 
-          /* row 1 */
-          v_mat    = _mm256_load_pd(lm[1]);
-          v_terma[1] = _mm256_add_pd(v_terma[1],
-                                   _mm256_mul_pd(v_mat,v_lclv));
-          v_mat    = _mm256_load_pd(rm[1]);
-          v_termb[1] = _mm256_add_pd(v_termb[1],
-                                   _mm256_mul_pd(v_mat,v_rclv));
-          lm[1] += 4;
-          rm[1] += 4;
-
-          /* row 2 */
-          v_mat    = _mm256_load_pd(lm[2]);
-          v_terma[2] = _mm256_add_pd(v_terma[2],
-                                   _mm256_mul_pd(v_mat,v_lclv));
-          v_mat    = _mm256_load_pd(rm[2]);
-          v_termb[2] = _mm256_add_pd(v_termb[2],
-                                   _mm256_mul_pd(v_mat,v_rclv));
-          lm[2] += 4;
-          rm[2] += 4;
-
-          /* row 3 */
-          v_mat    = _mm256_load_pd(lm[3]);
-          v_terma[3] = _mm256_add_pd(v_terma[3],
-                                   _mm256_mul_pd(v_mat,v_lclv));
-          v_mat    = _mm256_load_pd(rm[3]);
-          v_termb[3] = _mm256_add_pd(v_termb[3],
-                                   _mm256_mul_pd(v_mat,v_rclv));
-          lm[3] += 4;
-          rm[3] += 4;
+          }
+          */
         }
 
         /* point pmatrix to the next four rows */ 

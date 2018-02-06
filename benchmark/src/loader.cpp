@@ -177,8 +177,8 @@ std::shared_ptr<Dataset> loadDataset(const std::string &newickFilename,
   pll_set_category_rates(partition, gammaRates);
   
   if (statesNumber == 4) {
-    double subst[6] = {1, 1, 1, 1, 1, 1};
-    double frequencies[4] = {0.25, 0.25, 0.25, 0.25}; 
+    double subst[6] = {0.3, 1.5, 0.9, 0.8, 0.7, 0.95};
+    double frequencies[4] = {0.20, 0.30, 0.27, 0.23}; 
     pll_set_frequencies(partition, 0, frequencies);
     pll_set_subst_params(partition, 0, subst);
   } else {
