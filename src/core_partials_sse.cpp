@@ -20,6 +20,7 @@
 */
 
 #include "pll.h"
+#include "core_partials.cxx"
 
 static void fill_parent_scaler(unsigned int scaler_size,
                                unsigned int * parent_scaler,
@@ -714,6 +715,21 @@ PLL_EXPORT void pll_core_update_partial_ii_sse(unsigned int states,
   /* dedicated functions for 4x4 matrices */
   if (states == 4)
   {
+    if (attrib & PLL_ATTRIB_TEMPLATES) {
+      pll_core_template_update_partial_ii_sse<4, TemplateSSE>(sites,
+                                       rate_cats,
+                                       parent_clv,
+                                       parent_scaler,
+                                       left_clv,
+                                       right_clv,
+                                       left_matrix,
+                                       right_matrix,
+                                       left_scaler,
+                                       right_scaler,
+                                       attrib);
+      return;
+
+    }
     pll_core_update_partial_ii_4x4_sse(sites,
                                        rate_cats,
                                        parent_clv,
@@ -726,6 +742,21 @@ PLL_EXPORT void pll_core_update_partial_ii_sse(unsigned int states,
                                        right_scaler,
                                        attrib);
     return;
+  }
+  if (attrib & PLL_ATTRIB_TEMPLATES) {
+    pll_core_template_update_partial_ii_sse<20, TemplateSSE>(sites,
+                                     rate_cats,
+                                     parent_clv,
+                                     parent_scaler,
+                                     left_clv,
+                                     right_clv,
+                                     left_matrix,
+                                     right_matrix,
+                                     left_scaler,
+                                     right_scaler,
+                                     attrib);
+    return;
+
   }
 
   unsigned int span_padded = states_padded * rate_cats;
@@ -1078,7 +1109,7 @@ PLL_EXPORT void pll_core_update_partial_ti_4x4_sse(unsigned int sites,
 
   /* precompute a lookup table of four values per entry (one for each state),
      for all 16 states (including ambiguities) and for each rate category. */
-  double * lookup = pll_aligned_alloc(64*rate_cats*sizeof(double),
+  double * lookup = (double*) pll_aligned_alloc(64*rate_cats*sizeof(double),
                                       PLL_ALIGNMENT_SSE);
   if (!lookup)
   {

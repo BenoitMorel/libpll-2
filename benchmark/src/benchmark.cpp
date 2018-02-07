@@ -27,7 +27,6 @@ void bench_partials(std::shared_ptr<Dataset> dataset, unsigned int iterations)
 double bench_likelihood(std::shared_ptr<Dataset> dataset)
 {
   double ll = compute_likelihood(dataset);
-  std::cout << ll << std::endl;  
   return ll;
 }
 
@@ -55,32 +54,50 @@ int main(int argc, char **argv)
   }
   bool useTemplates = atoi(argv[1]);
 
-  unsigned int attribute = PLL_ATTRIB_ARCH_AVX;
+  unsigned int attribute_avx = PLL_ATTRIB_ARCH_AVX;
+  unsigned int attribute_sse = PLL_ATTRIB_ARCH_SSE;
   if (useTemplates) { 
-    attribute |= PLL_ATTRIB_TEMPLATES;
+    attribute_avx |= PLL_ATTRIB_TEMPLATES;
+    attribute_sse |= PLL_ATTRIB_TEMPLATES;
     std::cout << "Templates implementation" << std::endl;
   }
 
-  std::shared_ptr<Dataset> hbg011004 = loadDataset("data/HBG011004.raxml.bestTree",
+  std::shared_ptr<Dataset> hbg011004_avx = loadDataset("data/HBG011004.raxml.bestTree",
       "data/HBG011004.fasta",
-      attribute,
+      attribute_avx,
       AF_FASTA,
       AT_DNA);
-  
-  std::shared_ptr<Dataset> family_149 = loadDataset("data/family_149.newick",
+  std::shared_ptr<Dataset> family_149_avx = loadDataset("data/family_149.newick",
       "data/family_149.fasta",
-      attribute,
+      attribute_avx,
       AF_FASTA,
       AT_PROT);
-  
-  std::cout << "bench DNA " << std::endl;
-  bench_partials(hbg011004, 300);
-  check_dna(hbg011004);
-  
+  std::shared_ptr<Dataset> hbg011004_sse = loadDataset("data/HBG011004.raxml.bestTree",
+      "data/HBG011004.fasta",
+      attribute_sse,
+      AF_FASTA,
+      AT_DNA);
+  std::shared_ptr<Dataset> family_149_sse = loadDataset("data/family_149.newick",
+      "data/family_149.fasta",
+      attribute_sse,
+      AF_FASTA,
+      AT_PROT);
+  /*
+  std::cout << "bench DNA avx: ";
+  bench_partials(hbg011004_avx, 300);
+  check_dna(hbg011004_avx);
 
-  std::cout << "bench PROT " << std::endl;
-  bench_partials(family_149, 10);
-  check_prot(family_149);
+  std::cout << "bench PROT avx: ";
+  bench_partials(family_149_avx, 10);
+  check_prot(family_149_avx);
+*/
+  std::cout << "bench DNA sse: ";
+  bench_partials(hbg011004_sse, 300);
+  check_dna(hbg011004_sse);
+
+  std::cout << "bench PROT sse: ";
+  bench_partials(family_149_sse, 10);
+  check_prot(family_149_sse);
 
 
   return 0;
