@@ -297,10 +297,10 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(
         for (j = 0; j < STATES_PADDED; j += 4)
         {
           /* load left and right clvs */
-          //if (STATES != 4 || i == 0) {
+          if (STATES != 4 || i == 0) {
             xmm0 = _mm_load_pd(left_clv+j);
             xmm1 = _mm_load_pd(right_clv+j); 
-          //}
+          }
 
           xmm2 = _mm_load_pd(lm0);
           lm0 += 2;
@@ -337,36 +337,40 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(
           }
         
           
-          //if (STATES != 4 || i == 0) {
+          if (STATES != 4 || i == 0) {
             xmm3 = _mm_load_pd(left_clv+j + 2);
-            xmm4 = _mm_load_pd(right_clv+j + 2); 
-          //}
+          }
+          xmm4 = _mm_load_pd(right_clv+j + 2); 
 
           xmm2 = _mm_load_pd(lm0);
-          lm0 += 2;
-            v_terma0 = _mm_add_pd(v_terma0, _mm_mul_pd(xmm2,xmm3));
+
+          v_terma0 = _mm_add_pd(v_terma0, _mm_mul_pd(xmm2,xmm3));
           
           xmm2 = _mm_load_pd(lm1);
-          lm1 += 2;
-            v_terma1 = _mm_add_pd(v_terma1, _mm_mul_pd(xmm2,xmm3));
+          v_terma1 = _mm_add_pd(v_terma1, _mm_mul_pd(xmm2,xmm3));
 
 
           xmm2 = _mm_load_pd(rm0);
-          rm0 += 2;
-            v_termb0 = _mm_add_pd(v_termb0,_mm_mul_pd(xmm2,xmm4));
+          v_termb0 = _mm_add_pd(v_termb0,_mm_mul_pd(xmm2,xmm4));
 
 
           xmm2 = _mm_load_pd(rm1);
-          rm1 += 2;
-            v_termb1 = _mm_add_pd(v_termb1,_mm_mul_pd(xmm2,xmm4));
+          v_termb1 = _mm_add_pd(v_termb1,_mm_mul_pd(xmm2,xmm4));
+          
+          if (STATES != 4) { 
+            lm0 += 2;
+            lm1 += 2;
+            rm0 += 2;
+            rm1 += 2;
+          }
         
         
         
         
         }
         
-        lmat = lm1;
-        rmat = rm1;
+        lmat += 2 * STATES_PADDED;
+        rmat += 2 * STATES_PADDED;
 
         xmm4 = _mm_hadd_pd(v_terma0,v_terma1);
         xmm5 = _mm_hadd_pd(v_termb0,v_termb1);
