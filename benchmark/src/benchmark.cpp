@@ -24,10 +24,29 @@ void bench_partials(std::shared_ptr<Dataset> dataset, unsigned int iterations)
   std::cout << elapsed_seconds.count() << "s " << std::endl;
 }
 
-void bench_likelihood(std::shared_ptr<Dataset> dataset)
+double bench_likelihood(std::shared_ptr<Dataset> dataset)
 {
-  std::cout << compute_likelihood(dataset) << std::endl;  
+  double ll = compute_likelihood(dataset);
+  std::cout << ll << std::endl;  
+  return ll;
 }
+
+void check_dna(std::shared_ptr<Dataset> dataset) 
+{
+  double llDNA = bench_likelihood(dataset);
+  if (fabs(llDNA + 55847.7) > 1.0) {
+    std::cerr << "Error: wrong dna likelihood" << std::endl;
+  }
+}
+
+void check_prot(std::shared_ptr<Dataset> dataset) 
+{
+  double llPROT = bench_likelihood(dataset);
+  if (fabs(llPROT + 106350) > 1.0) {
+    std::cerr << "Error: wrong prot likelihood" << std::endl;
+  }
+}
+
 
 int main(int argc, char **argv)
 {
@@ -54,14 +73,15 @@ int main(int argc, char **argv)
       AF_FASTA,
       AT_PROT);
   
-  
   std::cout << "bench DNA " << std::endl;
   bench_partials(hbg011004, 300);
-  bench_likelihood(hbg011004);
+  check_dna(hbg011004);
+  
 
   std::cout << "bench PROT " << std::endl;
   bench_partials(family_149, 10);
-  bench_likelihood(family_149);
+  check_prot(family_149);
+
 
   return 0;
 }

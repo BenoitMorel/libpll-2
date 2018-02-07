@@ -20,36 +20,40 @@ class TemplateSSE {
 
 template <class VEC, unsigned int p>
 class FOR {
+public:
   static void plop(typename VEC::reg &v_mat, 
       typename VEC::reg v_terma[],
       typename VEC::reg v_termb[],
-      double *& lm,
-      double *& rm,
+      const double * lm[],
+      const double * rm[],
       typename VEC::reg &v_lclv,
       typename VEC::reg &v_rclv
       ) 
   {
-    v_mat    = VEC::load(lm[p]);
-    v_terma[p] = VEC::add(v_terma[p], VEC::mult(v_mat,v_lclv));
-    v_mat    = VEC::load(rm[p]);
-    v_termb[p] = VEC::add(v_termb[p], VEC::mult(v_mat,v_rclv));
-    lm[p] += VEC::vecsize;
-    rm[p] += VEC::vecsize;
-    FOR<VEC, p-1>::plop(v_mat, v_terma, v_termb, lm, rm, v_lclv, v_rclv);
+    const int index = 4-p;
+    v_mat    = VEC::load(lm[index]);
+    v_terma[index] = VEC::add(v_terma[index], VEC::mult(v_mat,v_lclv));
+    v_mat    = VEC::load(rm[index]);
+    v_termb[index] = VEC::add(v_termb[index], VEC::mult(v_mat,v_rclv));
+    lm[index] += VEC::vecsize;
+    rm[index] += VEC::vecsize;
+    FOR<VEC, p - 1>::plop(v_mat, v_terma, v_termb, lm, rm, v_lclv, v_rclv);
   }
 };
 
 template <class VEC>
 class FOR<VEC, 0> {
+public:
   static void plop(typename VEC::reg &v_mat, 
-      typename VEC::reg terma[],
-      typename VEC::reg termb[],
-      typename VEC::reg lm[],
-      typename VEC::reg rm[],
+      typename VEC::reg v_terma[],
+      typename VEC::reg v_termb[],
+      const double * lm[],
+      const double * rm[],
       typename  VEC::reg &v_lclv,
       typename VEC::reg &v_rclv
-      ) 
-  {}
+      )
+  {
+  }
 };
 
 // <4, typename VEC::reg
@@ -104,6 +108,7 @@ void pll_core_template_update_partial_ii(unsigned int sites,
         typename VEC::reg v_termb[VEC::vecsize];
         const double * lm[VEC::vecsize];
         const double * rm[VEC::vecsize];
+        /* For some reason, the compiler optimizes better with 3 seperate loops */
         for (unsigned int j = 0; j < VEC::vecsize; ++j) {
           v_terma[j] = _mm256_setzero_pd();
           v_termb[j] = _mm256_setzero_pd();
@@ -114,31 +119,14 @@ void pll_core_template_update_partial_ii(unsigned int sites,
         for (unsigned int j = 0; j < VEC::vecsize; ++j) {
           rm[j]= rmat + j * STATES_PADDED;
         } 
-        typename VEC::reg v_mat;
-        typename VEC::reg v_lclv;
-        typename VEC::reg v_rclv;
 
-
-
-        /* iterate over quadruples of columns */
+        /* iterate over sets of columns */
         for (unsigned int j = 0; j < STATES_PADDED; j += VEC::vecsize)
         {
-          v_lclv    = VEC::load(left_clv+j);
-          v_rclv    = VEC::load(right_clv+j);
-
-          /* row 0 */
-          FOR<VEC, 4>::plop(v_mat, v_terma, v_termb, lm, rm, v_lclv, v_rclv);
-          /*
-          for (unsigned int p = 0; p < 4; ++p) {
-            v_mat    = VEC::load(lm[p]);
-            v_terma[p] = VEC::add(v_terma[p], VEC::mult(v_mat,v_lclv));
-            v_mat    = VEC::load(rm[p]);
-            v_termb[p] = VEC::add(v_termb[p], VEC::mult(v_mat,v_rclv));
-            lm[p] += VEC::vecsize;
-            rm[p] += VEC::vecsize;
-
-          }
-          */
+          typename VEC::reg v_mat;
+          typename VEC::reg v_lclv    = VEC::load(left_clv + j);
+          typename VEC::reg v_rclv    = VEC::load(right_clv + j);
+          FOR<VEC, VEC::vecsize>::plop(v_mat, v_terma, v_termb, lm, rm, v_lclv, v_rclv);
         }
 
         /* point pmatrix to the next four rows */ 
