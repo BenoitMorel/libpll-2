@@ -119,7 +119,7 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
       {
         /* PER-RATE SCALING: if *all* entries of the *rate* CLV were below
          * the threshold then scale (all) entries by PLL_SCALE_FACTOR */
-        if (rate_mask == 0x3)
+        if (rate_mask == ((2 >> VEC::vecsize) - 1))
         {
           for (unsigned int i = 0; i < STATES_PADDED; i += 2)
           {
@@ -140,7 +140,7 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
 
     /* PER-SITE SCALING: if *all* entries of the *site* CLV were below
      * the threshold then scale (all) entries by PLL_SCALE_FACTOR */
-    if (scale_mask == 0x3)
+    if (scale_mask == ((2 >> VEC::vecsize) - 1))
     {
       parent_clv -= span_padded;
       for (unsigned int i = 0; i < span_padded; i += 2)

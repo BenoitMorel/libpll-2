@@ -165,18 +165,22 @@ void pll_core_template_update_partial_ii(unsigned int sites,
         VEC::store(parent_clv + i, v_result);
 
       }
+      
+      parent_clv += STATES_PADDED;
+      left_clv   += STATES_PADDED;
+      right_clv  += STATES_PADDED;
 
       if (scale_mode == 2)
       {
         /* PER-RATE SCALING: if *all* entries of the *rate* CLV were below
          * the threshold then scale (all) entries by PLL_SCALE_FACTOR */
-        if (rate_mask == 0xF)
+        if (rate_mask == ((2 >> VEC::vecsize) - 1)) 
         {
-          for (unsigned int i = 0; i < STATES_PADDED; i += 4)
+          for (unsigned int i = 0; i < STATES_PADDED; i += VEC::vecsize)
           {
-            typename VEC::reg v_prod = _mm256_load_pd(parent_clv + i);
-            v_prod = _mm256_mul_pd(v_prod, v_scale_factor);
-            _mm256_store_pd(parent_clv + i, v_prod);
+            typename VEC::reg v_prod = VEC::load(parent_clv + i);
+            v_prod = VEC::mult(v_prod, v_scale_factor);
+            VEC::store(parent_clv + i, v_prod);
           }
           parent_scaler[n*rate_cats + k] += 1;
         }
@@ -190,14 +194,11 @@ void pll_core_template_update_partial_ii(unsigned int sites,
       lmat -= displacement;
       rmat -= displacement;
 
-      parent_clv += STATES_PADDED;
-      left_clv   += STATES_PADDED;
-      right_clv  += STATES_PADDED;
     }
 
     /* if *all* entries of the site CLV were below the threshold then scale
        (all) entries by PLL_SCALE_FACTOR */
-    if (scale_mask == 0xF)
+    if (scale_mask == ((2 >> VEC::vecsize) - 1))
     {
       parent_clv -= span_padded;
       for (unsigned int i = 0; i < span_padded; i += 4)
