@@ -129,7 +129,7 @@
 /* site repeats */
 
 #define PLL_ATTRIB_SITE_REPEATS    (1 << 10)
-#define PLL_ATTRIB_TEMPLATES       (1 << 11)
+#define PLL_ATTRIB_NO_TEMPLATES       (1 << 11)
 #define PLL_REPEATS_LOOKUP_SIZE  2000000 
 
 /* topological rearrangements */

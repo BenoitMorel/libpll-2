@@ -57,9 +57,11 @@ int main(int argc, char **argv)
   unsigned int attribute_avx = PLL_ATTRIB_ARCH_AVX;
   unsigned int attribute_sse = PLL_ATTRIB_ARCH_SSE;
   if (useTemplates) { 
-    attribute_avx |= PLL_ATTRIB_TEMPLATES;
-    attribute_sse |= PLL_ATTRIB_TEMPLATES;
     std::cout << "Templates implementation" << std::endl;
+  } else {
+    attribute_avx |= PLL_ATTRIB_NO_TEMPLATES;
+    attribute_sse |= PLL_ATTRIB_NO_TEMPLATES;
+    std::cout << "no templates implementation" << std::endl;
   }
 
   std::shared_ptr<Dataset> hbg011004_avx = loadDataset("data/HBG011004.raxml.bestTree",
@@ -82,6 +84,7 @@ int main(int argc, char **argv)
       attribute_sse,
       AF_FASTA,
       AT_PROT);
+  
   std::cout << "bench DNA avx: ";
   bench_partials(hbg011004_avx, 300);
   check_dna(hbg011004_avx);

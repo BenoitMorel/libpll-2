@@ -41,6 +41,8 @@ class TemplateSSE {
   }
 };
 
+
+
 template <class VEC, bool OPT, bool LOAD, unsigned int p>
 class FOR {
 public:
@@ -79,8 +81,50 @@ public:
   {
   }
 };
+/*
+todo mettre states en parametre de classe, et OPT, LOAD et j en paramettre de methode
+ça risque de génerer trop de code: éventuellement ne dérouler que le début de la boucle
+puis faire une vraie boucle
+*/
+template <class VEC, bool OPT, bool LOAD, unsigned int STATES, unsigned int j>
+class FOR_INNER_2 {
+public:
+  static void inner_2(
+      typename VEC::reg v_terma[],
+      typename VEC::reg v_termb[],
+      const double * lm[],
+      const double * rm[],
+      typename VEC::reg &v_lclv,
+      typename VEC::reg &v_rclv,
+      const double * left_clv,
+      const double * right_clv)
+  {
+    
+    FOR<VEC, OPT, LOAD, VEC::vecsize>::inner_3(v_terma, lm, v_lclv, left_clv + j);
+    FOR<VEC, OPT, LOAD, VEC::vecsize>::inner_3(v_termb, rm, v_rclv, right_clv + j);
+    FOR_INNER_2<VEC, false, true, STATES, j + VEC::vecsize>
+      ::inner_2(v_terma, v_termb, lm, rm, v_lclv, v_rclv, left_clv, right_clv);
 
-#include "core_partials_sse.cxx"
+  }
+};
+
+template <class VEC, bool OPT, bool LOAD, unsigned int STATES>
+class FOR_INNER_2 <VEC, OPT, LOAD, STATES, STATES> {
+public:
+  static void inner_2(
+      typename VEC::reg v_terma[],
+      typename VEC::reg v_termb[],
+      const double * lm[],
+      const double * rm[],
+      typename VEC::reg &v_lclv,
+      typename VEC::reg &v_rclv,
+      const double * left_clv,
+      const double * right_clv)
+  {
+  }
+};
+
+//#include "core_partials_sse.cxx"
 
 template <int STATES, class VEC>
 void pll_core_template_update_partial_ii(unsigned int sites,
@@ -143,15 +187,16 @@ void pll_core_template_update_partial_ii(unsigned int sites,
         typename VEC::reg v_lclv;
         typename VEC::reg v_rclv;
 
-        /* iterate over sets of columns */
-        FOR<VEC, true, true, VEC::vecsize>::inner_3(v_terma, lm, v_lclv, left_clv);
-        FOR<VEC, true, true, VEC::vecsize>::inner_3(v_termb, rm, v_rclv, right_clv);
-
+        FOR_INNER_2<VEC, true, true, STATES_PADDED, 0>
+          ::inner_2(v_terma, v_termb, lm, rm, v_lclv, 
+          v_rclv, left_clv, right_clv);
+            /*FOR<VEC, true, true, VEC::vecsize>::inner_3(v_terma, lm, v_lclv, left_clv);
+            FOR<VEC, true, true, VEC::vecsize>::inner_3(v_termb, rm, v_rclv, right_clv);
         for (unsigned int j = VEC::vecsize; j < STATES_PADDED; j += VEC::vecsize) {
             FOR<VEC, false, true, VEC::vecsize>::inner_3(v_terma, lm, v_lclv, left_clv + j);
-            FOR<VEC, false, true, VEC::vecsize>::inner_3(v_termb, rm, v_lclv, right_clv + j);
+            FOR<VEC, false, true, VEC::vecsize>::inner_3(v_termb, rm, v_rclv, right_clv + j);
         }
-
+*/
         /* point pmatrix to the next four rows */ 
         lmat += VEC::vecsize * STATES_PADDED;
         rmat += VEC::vecsize * STATES_PADDED;

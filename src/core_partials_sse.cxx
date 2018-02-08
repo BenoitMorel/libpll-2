@@ -52,11 +52,7 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
         
         const double * lm[VEC::vecsize];
         const double * rm[VEC::vecsize];
-        /* For some reason, the compiler optimizes better with 3 seperate loops */
-        for (unsigned int j = 0; j < VEC::vecsize; ++j) {
-          v_terma[j] = VEC::setzero();
-          v_termb[j] = VEC::setzero();
-        }
+        /* For some reason, the compiler optimizes better with seperate loops */
         for (unsigned int j = 0; j < VEC::vecsize; ++j) {
           lm[j]= lmat + j * STATES_PADDED;
         }
@@ -69,12 +65,10 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
         FOR<VEC, false, true, VEC::vecsize>::inner_3(v_terma, lm, v_lclv, left_clv + 2);
         FOR<VEC, false, true, VEC::vecsize>::inner_3(v_termb, rm, v_rclv, right_clv + 2);
 
-        for (unsigned int j = VEC::vecsize * 2; j < STATES_PADDED; j += VEC::vecsize * 2)
+        for (unsigned int j = VEC::vecsize * 2; j < STATES_PADDED; j += VEC::vecsize)
         {
           FOR<VEC, false, true, VEC::vecsize>::inner_3(v_terma, lm, v_lclv, left_clv + j);
           FOR<VEC, false, true, VEC::vecsize>::inner_3(v_termb, rm, v_rclv, right_clv + j);
-          FOR<VEC, false, true, VEC::vecsize>::inner_3(v_terma, lm, v_lclv, left_clv + j + 2);
-          FOR<VEC, false, true, VEC::vecsize>::inner_3(v_termb, rm, v_rclv, right_clv + j + 2);
         }
 
         lmat += VEC::vecsize * STATES_PADDED;
