@@ -715,7 +715,7 @@ PLL_EXPORT void pll_core_update_partial_ii_sse(unsigned int states,
   /* dedicated functions for 4x4 matrices */
   if (states == 4)
   {
-    if (attrib & PLL_ATTRIB_TEMPLATES) {
+    if (!(attrib & PLL_ATTRIB_TEMPLATES)) {
       pll_core_template_update_partial_ii_sse<4, TemplateSSE>(sites,
                                        rate_cats,
                                        parent_clv,
@@ -728,7 +728,6 @@ PLL_EXPORT void pll_core_update_partial_ii_sse(unsigned int states,
                                        right_scaler,
                                        attrib);
       return;
-
     }
     pll_core_update_partial_ii_4x4_sse(sites,
                                        rate_cats,
@@ -743,7 +742,7 @@ PLL_EXPORT void pll_core_update_partial_ii_sse(unsigned int states,
                                        attrib);
     return;
   }
-  if (attrib & PLL_ATTRIB_TEMPLATES) {
+  if (!(attrib & PLL_ATTRIB_TEMPLATES)) {
     pll_core_template_update_partial_ii_sse<20, TemplateSSE>(sites,
                                      rate_cats,
                                      parent_clv,

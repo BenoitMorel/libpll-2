@@ -2281,7 +2281,7 @@ PLL_EXPORT void pll_core_update_partial_ii_avx(unsigned int states,
   /* dedicated functions for 4x4 matrices */
   if (states == 4)
   {
-    if (attrib & PLL_ATTRIB_TEMPLATES) {
+    if (!(attrib & PLL_ATTRIB_TEMPLATES)) {
       pll_core_template_update_partial_ii<4, TemplateAVX> (
         sites, rate_cats, parent_clv, parent_scaler, 
         left_clv, right_clv, left_matrix, right_matrix, 
@@ -2301,7 +2301,7 @@ PLL_EXPORT void pll_core_update_partial_ii_avx(unsigned int states,
                                        attrib);
     return;
   }
-  if (states == 20 && (attrib & PLL_ATTRIB_TEMPLATES)) {
+  if (states == 20 && !(attrib & PLL_ATTRIB_TEMPLATES)) {
       pll_core_template_update_partial_ii<20, TemplateAVX> (
         sites, rate_cats, parent_clv, parent_scaler, 
         left_clv, right_clv, left_matrix, right_matrix, 
