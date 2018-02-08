@@ -135,8 +135,8 @@ void pll_core_template_update_partial_ii(unsigned int sites,
         }
 
         /* point pmatrix to the next four rows */ 
-        lmat = lm[3];
-        rmat = rm[3];
+        lmat += VEC::vecsize * STATES_PADDED;
+        rmat += VEC::vecsize * STATES_PADDED;
 
         typename VEC::reg xmm0 = _mm256_unpackhi_pd(v_terma[0],v_terma[1]);
         typename VEC::reg xmm1 = _mm256_unpacklo_pd(v_terma[0],v_terma[1]);

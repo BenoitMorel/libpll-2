@@ -98,9 +98,9 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
           FOR<VEC, false, true, VEC::vecsize>::inner_3(v_terma, lm, v_lclv, left_clv + j + 2);
           FOR<VEC, false, true, VEC::vecsize>::inner_3(v_termb, rm, v_rclv, right_clv + j + 2);
         }
-        
-        lmat += 2 * STATES_PADDED;
-        rmat += 2 * STATES_PADDED;
+
+        lmat += VEC::vecsize * STATES_PADDED;
+        rmat += VEC::vecsize * STATES_PADDED;
         
         xmm4 = _mm_hadd_pd(v_termb[0],v_termb[1]);
         xmm5 = _mm_hadd_pd(v_terma[0],v_terma[1]);
