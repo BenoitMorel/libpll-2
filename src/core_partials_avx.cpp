@@ -2470,7 +2470,7 @@ PLL_EXPORT void pll_core_update_partial_ii_avx(unsigned int states,
          * the threshold then scale (all) entries by PLL_SCALE_FACTOR */
         if (rate_mask == 0xF)
         {
-          for (i = 0; i < states_padded; i += 4)
+          for (unsigned int i = 0; i < states_padded; i += 4)
           {
             __m256d v_prod = _mm256_load_pd(parent_clv + i);
             v_prod = _mm256_mul_pd(v_prod, v_scale_factor);
@@ -2498,7 +2498,7 @@ PLL_EXPORT void pll_core_update_partial_ii_avx(unsigned int states,
     if (scale_mask == 0xF)
     {
       parent_clv -= span_padded;
-      for (i = 0; i < span_padded; i += 4)
+      for (unsigned int i = 0; i < span_padded; i += 4)
       {
         __m256d v_prod = _mm256_load_pd(parent_clv + i);
         v_prod = _mm256_mul_pd(v_prod,v_scale_factor);

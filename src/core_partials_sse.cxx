@@ -108,15 +108,13 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
         rate_mask = rate_mask & VEC::movemask(v_cmp);
         VEC::store(parent_clv + i, v_result);
       }
-      parent_clv += STATES_PADDED;
-      left_clv   += STATES_PADDED;
-      right_clv  += STATES_PADDED;
 
       if (scale_mode == 2)
       {
         /* PER-RATE SCALING: if *all* entries of the *rate* CLV were below
          * the threshold then scale (all) entries by PLL_SCALE_FACTOR */
-        if (rate_mask == ((2 >> VEC::vecsize) - 1)) 
+        
+        if (rate_mask == ((1 << VEC::vecsize) - 1)) 
         {
           for (unsigned int i = 0; i < STATES_PADDED; i += VEC::vecsize)
           {
@@ -130,17 +128,19 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
       else
         scale_mask = scale_mask & rate_mask;
 
+      parent_clv += STATES_PADDED;
+      left_clv   += STATES_PADDED;
+      right_clv  += STATES_PADDED;
       /* reset pointers to point to the start of the next p-matrix, as the
          vectorization assumes a square STATES_PADDED * STATES_PADDED matrix,
          even though the real matrix is STATES * STATES_PADDED */
       lmat -= displacement;
       rmat -= displacement;
-
     }
 
     /* if *all* entries of the site CLV were below the threshold then scale
        (all) entries by PLL_SCALE_FACTOR */
-    if (scale_mask == ((2 >> VEC::vecsize) - 1))
+    if (scale_mask == ((1 << VEC::vecsize) - 1))
     {
       parent_clv -= span_padded;
       for (unsigned int i = 0; i < span_padded; i += VEC::vecsize)
