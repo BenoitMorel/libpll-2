@@ -23,39 +23,35 @@ class TemplateSSE {
 
 };
 
-template <class VEC, unsigned int p>
+template <class VEC, bool OPT, unsigned int p>
 class FOR {
 public:
-  static void plop(typename VEC::reg &v_mat, 
-      typename VEC::reg v_terma[],
-      typename VEC::reg v_termb[],
-      const double * lm[],
-      const double * rm[],
-      typename VEC::reg &v_lclv,
-      typename VEC::reg &v_rclv
+  static void inner_3(typename VEC::reg &v_mat, 
+      typename VEC::reg v_term[],
+      const double * m[],
+      typename VEC::reg v_clv
       ) 
   {
-    const int index = 4-p;
-    v_mat    = VEC::load(lm[index]);
-    v_terma[index] = VEC::add(v_terma[index], VEC::mult(v_mat,v_lclv));
-    v_mat    = VEC::load(rm[index]);
-    v_termb[index] = VEC::add(v_termb[index], VEC::mult(v_mat,v_rclv));
-    lm[index] += VEC::vecsize;
-    rm[index] += VEC::vecsize;
-    FOR<VEC, p - 1>::plop(v_mat, v_terma, v_termb, lm, rm, v_lclv, v_rclv);
+    const int index = VEC::vecsize - p;
+    v_mat    = VEC::load(m[index]);
+    if (OPT) {
+      v_term[index] = VEC::mult(v_mat,v_clv);
+    } else {
+      v_term[index] = VEC::add(v_term[index], VEC::mult(v_mat,v_clv));
+    }
+    m[index] += VEC::vecsize;
+    FOR<VEC, OPT, p - 1>::inner_3(v_mat, v_term, m, v_clv);
   }
+
 };
 
-template <class VEC>
-class FOR<VEC, 0> {
+template <class VEC, bool OPT>
+class FOR<VEC, OPT, 0> {
 public:
-  static void plop(typename VEC::reg &v_mat, 
+  static void inner_3(typename VEC::reg &v_mat, 
       typename VEC::reg v_terma[],
-      typename VEC::reg v_termb[],
       const double * lm[],
-      const double * rm[],
-      typename  VEC::reg &v_lclv,
-      typename VEC::reg &v_rclv
+      typename  VEC::reg &v_lclv
       )
   {
   }
@@ -125,14 +121,17 @@ void pll_core_template_update_partial_ii(unsigned int sites,
         for (unsigned int j = 0; j < VEC::vecsize; ++j) {
           rm[j]= rmat + j * STATES_PADDED;
         } 
+        typename VEC::reg v_mat;
+        typename VEC::reg v_lclv;
+        typename VEC::reg v_rclv;
 
         /* iterate over sets of columns */
-        for (unsigned int j = 0; j < STATES_PADDED; j += VEC::vecsize)
-        {
-          typename VEC::reg v_mat;
-          typename VEC::reg v_lclv    = VEC::load(left_clv + j);
-          typename VEC::reg v_rclv    = VEC::load(right_clv + j);
-          FOR<VEC, VEC::vecsize>::plop(v_mat, v_terma, v_termb, lm, rm, v_lclv, v_rclv);
+        FOR<VEC, true, VEC::vecsize>::inner_3(v_mat, v_terma, lm, VEC::load(left_clv));
+        FOR<VEC, true, VEC::vecsize>::inner_3(v_mat, v_termb, rm, VEC::load(right_clv));
+
+        for (unsigned int j = VEC::vecsize; j < STATES_PADDED; j += VEC::vecsize) {
+          FOR<VEC, false,  VEC::vecsize>::inner_3(v_mat, v_terma, lm, VEC::load(left_clv + j));
+          FOR<VEC, false, VEC::vecsize>::inner_3(v_mat, v_termb, rm, VEC::load(right_clv + j));
         }
 
         /* point pmatrix to the next four rows */ 

@@ -1,5 +1,5 @@
 template <class VEC, unsigned int STATES, unsigned int p, bool OPT> 
-void sse_plop(
+void sse_inner_3(
       typename VEC::reg &xmm_mat,
       typename VEC::reg &xmm_clv,
       typename VEC::reg v_term[],
@@ -80,30 +80,29 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
           rm[j]= rmat + j * STATES_PADDED;
         } 
 
-        for (unsigned int j = 0; j < STATES_PADDED; j += 4)
+        for (unsigned int j = 0; j < STATES_PADDED; j += VEC::vecsize * 2)
         {
+          typename VEC::reg v_mat;
+          typename VEC::reg v_lclv;
+          typename VEC::reg v_rclv;
+       
+
           if (STATES != 4 || i == 0)
-            xmm0 = _mm_load_pd(left_clv+j);
-          sse_plop<VEC, STATES, 0, true>(xmm2, xmm0, v_terma, lm, j); 
-          sse_plop<VEC, STATES, 1, true>(xmm2, xmm0, v_terma, lm, j); 
-        
-          if (STATES != 4 || i == 0) 
-            xmm3 = _mm_load_pd(left_clv+j + 2);
-          sse_plop<VEC, STATES, 0, false>(xmm2, xmm3, v_terma, lm, j + 2); 
-          sse_plop<VEC, STATES, 1, false>(xmm2, xmm3, v_terma, lm, j + 2); 
-         
-           
+            v_lclv    = VEC::load(left_clv + j);
+          FOR<VEC, false, VEC::vecsize>::inner_3(v_mat, v_terma, lm, v_lclv);
           
           if (STATES != 4 || i == 0)
-            xmm1 = _mm_load_pd(right_clv+j); 
-          sse_plop<VEC, STATES, 0, true>(xmm2, xmm1, v_termb, rm, j); 
-          sse_plop<VEC, STATES, 1, true>(xmm2, xmm1, v_termb, rm, j); 
+            v_rclv    = VEC::load(right_clv + j);
+          FOR<VEC, false, VEC::vecsize>::inner_3(v_mat, v_termb, rm, v_rclv);
           
+          if (STATES != 4 || i == 0)
+            v_lclv    = VEC::load(left_clv + j + 2);
+          FOR<VEC, false, VEC::vecsize>::inner_3(v_mat, v_terma, lm, v_lclv);
           
-          //if (STATES != 4 || i == 0)
-            xmm4 = _mm_load_pd(right_clv+j + 2); 
-          sse_plop<VEC, STATES, 0, false>(xmm2, xmm4, v_termb, rm, j + 2); 
-          sse_plop<VEC, STATES, 1, false>(xmm2, xmm4, v_termb, rm, j + 2); 
+          if (STATES != 4 || i == 0)
+            v_rclv    = VEC::load(right_clv + j + 2);
+          FOR<VEC, false, VEC::vecsize>::inner_3(v_mat, v_termb, rm, v_rclv);
+          
         }
         
         lmat += 2 * STATES_PADDED;

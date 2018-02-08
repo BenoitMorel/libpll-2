@@ -82,7 +82,6 @@ int main(int argc, char **argv)
       attribute_sse,
       AF_FASTA,
       AT_PROT);
-  /*
   std::cout << "bench DNA avx: ";
   bench_partials(hbg011004_avx, 300);
   check_dna(hbg011004_avx);
@@ -90,7 +89,7 @@ int main(int argc, char **argv)
   std::cout << "bench PROT avx: ";
   bench_partials(family_149_avx, 10);
   check_prot(family_149_avx);
-*/
+  
   std::cout << "bench DNA sse: ";
   bench_partials(hbg011004_sse, 300);
   check_dna(hbg011004_sse);
