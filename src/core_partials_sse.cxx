@@ -65,7 +65,7 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
     {
       unsigned int rate_mask = 0x3;
 
-      for (unsigned int i = 0; i < STATES_PADDED; i += 2)
+      for (unsigned int i = 0; i < STATES_PADDED; i += VEC::vecsize)
       {
         typename VEC::reg v_terma[VEC::vecsize];
         typename VEC::reg v_termb[VEC::vecsize];
@@ -73,10 +73,6 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
         const double * lm[VEC::vecsize];
         const double * rm[VEC::vecsize];
         /* For some reason, the compiler optimizes better with 3 seperate loops */
-        for (unsigned int j = 0; j < VEC::vecsize; ++j) {
-          v_terma[j] = VEC::setzero();
-          v_termb[j] = VEC::setzero();
-        }
         for (unsigned int j = 0; j < VEC::vecsize; ++j) {
           lm[j]= lmat + j * STATES_PADDED;
         }
@@ -91,28 +87,30 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
           sse_plop<VEC, STATES, 0, true>(xmm2, xmm0, v_terma, lm, j); 
           sse_plop<VEC, STATES, 1, true>(xmm2, xmm0, v_terma, lm, j); 
         
+          if (STATES != 4 || i == 0) 
+            xmm3 = _mm_load_pd(left_clv+j + 2);
+          sse_plop<VEC, STATES, 0, false>(xmm2, xmm3, v_terma, lm, j + 2); 
+          sse_plop<VEC, STATES, 1, false>(xmm2, xmm3, v_terma, lm, j + 2); 
+         
+           
           
           if (STATES != 4 || i == 0)
             xmm1 = _mm_load_pd(right_clv+j); 
           sse_plop<VEC, STATES, 0, true>(xmm2, xmm1, v_termb, rm, j); 
           sse_plop<VEC, STATES, 1, true>(xmm2, xmm1, v_termb, rm, j); 
           
-          if (STATES != 4 || i == 0) 
-            xmm3 = _mm_load_pd(left_clv+j + 2);
-          sse_plop<VEC, STATES, 0, false>(xmm2, xmm3, v_terma, lm, j + 2); 
-          sse_plop<VEC, STATES, 1, false>(xmm2, xmm3, v_terma, lm, j + 2); 
-         
           
-          xmm4 = _mm_load_pd(right_clv+j + 2); 
+          //if (STATES != 4 || i == 0)
+            xmm4 = _mm_load_pd(right_clv+j + 2); 
           sse_plop<VEC, STATES, 0, false>(xmm2, xmm4, v_termb, rm, j + 2); 
           sse_plop<VEC, STATES, 1, false>(xmm2, xmm4, v_termb, rm, j + 2); 
         }
         
         lmat += 2 * STATES_PADDED;
         rmat += 2 * STATES_PADDED;
-
-        xmm4 = _mm_hadd_pd(v_terma[0],v_terma[1]);
-        xmm5 = _mm_hadd_pd(v_termb[0],v_termb[1]);
+        
+        xmm4 = _mm_hadd_pd(v_termb[0],v_termb[1]);
+        xmm5 = _mm_hadd_pd(v_terma[0],v_terma[1]);
         xmm6 = _mm_mul_pd(xmm4,xmm5);
 
         /* check if scaling is needed for the current rate category */
