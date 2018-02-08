@@ -1,23 +1,3 @@
-template <class VEC, unsigned int STATES, unsigned int p, bool OPT> 
-void sse_inner_3(
-      typename VEC::reg &xmm_mat,
-      typename VEC::reg &xmm_clv,
-      typename VEC::reg v_term[],
-      const double *m[],
-      unsigned int j)
-{
-    xmm_mat = VEC::load(m[p]);
-    m[p] += 2;
-    if (OPT) {
-      if (j == 0 && STATES == 4) {
-        v_term[p] = VEC::mult(xmm_mat,xmm_clv);
-      } else {
-        v_term[p] = VEC::add(v_term[p], VEC::mult(xmm_mat,xmm_clv));
-      }
-    } else {
-        v_term[p] = VEC::add(v_term[p], VEC::mult(xmm_mat,xmm_clv));
-    }
-}
 
 template <int STATES, class VEC>
 PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
