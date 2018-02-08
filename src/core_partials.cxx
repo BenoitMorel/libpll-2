@@ -4,10 +4,24 @@ public:
   typedef __m256d reg;
   static const int vecsize = 4;
   static constexpr auto load = _mm256_load_pd;
+  static constexpr auto store = _mm256_store_pd;
   static constexpr auto mult = _mm256_mul_pd;
   static constexpr auto add = _mm256_add_pd; 
   static constexpr auto set = _mm256_set1_pd; 
   static constexpr auto setzero = _mm256_setzero_pd; 
+  static constexpr auto movemask = _mm256_movemask_pd; 
+  static reg cmplt(reg r1, reg r2) { return  _mm256_cmp_pd(r1, r2, _CMP_LT_OS);}
+  static reg compute_term(reg v_term[]) {
+    reg xmm0 = _mm256_unpackhi_pd(v_term[0],v_term[1]);
+    reg xmm1 = _mm256_unpacklo_pd(v_term[0],v_term[1]);
+    reg xmm2 = _mm256_unpackhi_pd(v_term[2],v_term[3]);
+    reg xmm3 = _mm256_unpacklo_pd(v_term[2],v_term[3]);
+    xmm0 = _mm256_add_pd(xmm0,xmm1);
+    xmm1 = _mm256_add_pd(xmm2,xmm3);
+    xmm2 = _mm256_permute2f128_pd(xmm0,xmm1, _MM_SHUFFLE(0,2,0,1));
+    xmm3 = _mm256_blend_pd(xmm0,xmm1,12);
+    return _mm256_add_pd(xmm2,xmm3);
+  }
 };
 
 class TemplateSSE {
@@ -15,12 +29,16 @@ class TemplateSSE {
    typedef __m128d reg;
    static const int vecsize = 2;
   static constexpr auto load = _mm_load_pd;
+  static constexpr auto store = _mm_store_pd;
   static constexpr auto mult = _mm_mul_pd;
   static constexpr auto add = _mm_add_pd; 
   static constexpr auto set = _mm_set1_pd; 
   static constexpr auto setzero = _mm_setzero_pd; 
-
-
+  static constexpr auto movemask = _mm_movemask_pd; 
+  static constexpr auto cmplt = _mm_cmplt_pd; 
+  static reg compute_term(reg vterm[]) {
+    return _mm_hadd_pd(vterm[0], vterm[1]);
+  }
 };
 
 template <class VEC, bool OPT, bool LOAD, unsigned int p>
@@ -137,46 +155,15 @@ void pll_core_template_update_partial_ii(unsigned int sites,
         /* point pmatrix to the next four rows */ 
         lmat += VEC::vecsize * STATES_PADDED;
         rmat += VEC::vecsize * STATES_PADDED;
-
-        typename VEC::reg xmm0 = _mm256_unpackhi_pd(v_terma[0],v_terma[1]);
-        typename VEC::reg xmm1 = _mm256_unpacklo_pd(v_terma[0],v_terma[1]);
-
-        typename VEC::reg xmm2 = _mm256_unpackhi_pd(v_terma[2],v_terma[3]);
-        typename VEC::reg xmm3 = _mm256_unpacklo_pd(v_terma[2],v_terma[3]);
-
-        xmm0 = _mm256_add_pd(xmm0,xmm1);
-        xmm1 = _mm256_add_pd(xmm2,xmm3);
-
-        xmm2 = _mm256_permute2f128_pd(xmm0,xmm1, _MM_SHUFFLE(0,2,0,1));
-
-        xmm3 = _mm256_blend_pd(xmm0,xmm1,12);
-
-        typename VEC::reg v_terma_sum = _mm256_add_pd(xmm2,xmm3);
-
-        /* compute term[b] */
-
-        xmm0 = _mm256_unpackhi_pd(v_termb[0],v_termb[1]);
-        xmm1 = _mm256_unpacklo_pd(v_termb[0],v_termb[1]);
-
-        xmm2 = _mm256_unpackhi_pd(v_termb[2],v_termb[3]);
-        xmm3 = _mm256_unpacklo_pd(v_termb[2],v_termb[3]);
-
-        xmm0 = _mm256_add_pd(xmm0,xmm1);
-        xmm1 = _mm256_add_pd(xmm2,xmm3);
-
-        xmm2 = _mm256_permute2f128_pd(xmm0,xmm1, _MM_SHUFFLE(0,2,0,1));
-
-        xmm3 = _mm256_blend_pd(xmm0,xmm1,12);
-
-        typename VEC::reg v_termb_sum = _mm256_add_pd(xmm2,xmm3);
-
-        typename VEC::reg v_prod = _mm256_mul_pd(v_terma_sum,v_termb_sum);
-
+        
+        typename VEC::reg v_a = VEC::compute_term(v_terma);
+        typename VEC::reg v_b = VEC::compute_term(v_termb);
+        typename VEC::reg v_result = VEC::mult(v_a, v_b);
         /* check if scaling is needed for the current rate category */
-        typename VEC::reg v_cmp = _mm256_cmp_pd(v_prod, v_scale_threshold, _CMP_LT_OS);
-        rate_mask = rate_mask & _mm256_movemask_pd(v_cmp);
+        typename VEC::reg v_cmp = VEC::cmplt(v_result, v_scale_threshold);
+        rate_mask = rate_mask & VEC::movemask(v_cmp);
+        VEC::store(parent_clv + i, v_result);
 
-        _mm256_store_pd(parent_clv+i, v_prod);
       }
 
       if (scale_mode == 2)

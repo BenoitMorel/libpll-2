@@ -53,8 +53,6 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
   size_t displacement = (STATES_PADDED - STATES) * (STATES_PADDED);
 
 
-  typename VEC::reg xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6;
-
   for (unsigned int n = 0; n < sites; ++n)
   {
     const double * lmat = left_matrix;
@@ -102,15 +100,13 @@ PLL_EXPORT void pll_core_template_update_partial_ii_sse(unsigned int sites,
         lmat += VEC::vecsize * STATES_PADDED;
         rmat += VEC::vecsize * STATES_PADDED;
         
-        xmm4 = _mm_hadd_pd(v_termb[0],v_termb[1]);
-        xmm5 = _mm_hadd_pd(v_terma[0],v_terma[1]);
-        xmm6 = _mm_mul_pd(xmm4,xmm5);
-
+        typename VEC::reg v_a = VEC::compute_term(v_terma);
+        typename VEC::reg v_b = VEC::compute_term(v_termb);
+        typename VEC::reg v_result = VEC::mult(v_a, v_b);
         /* check if scaling is needed for the current rate category */
-        __m128d v_cmp = _mm_cmplt_pd(xmm6, v_scale_threshold);
-        rate_mask = rate_mask & _mm_movemask_pd(v_cmp);
-
-        _mm_store_pd(parent_clv+i,xmm6);
+        typename VEC::reg v_cmp = VEC::cmplt(v_result, v_scale_threshold);
+        rate_mask = rate_mask & VEC::movemask(v_cmp);
+        VEC::store(parent_clv + i, v_result);
       }
 
       /* reset pointers to the start of the next p-matrix, as the vectorization
