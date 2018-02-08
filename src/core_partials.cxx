@@ -165,7 +165,6 @@ void pll_core_template_update_partial_ii(unsigned int sites,
         VEC::store(parent_clv + i, v_result);
 
       }
-      
       parent_clv += STATES_PADDED;
       left_clv   += STATES_PADDED;
       right_clv  += STATES_PADDED;
@@ -193,7 +192,6 @@ void pll_core_template_update_partial_ii(unsigned int sites,
          even though the real matrix is STATES * STATES_PADDED */
       lmat -= displacement;
       rmat -= displacement;
-
     }
 
     /* if *all* entries of the site CLV were below the threshold then scale
@@ -204,8 +202,8 @@ void pll_core_template_update_partial_ii(unsigned int sites,
       for (unsigned int i = 0; i < span_padded; i += 4)
       {
         typename VEC::reg v_prod = _mm256_load_pd(parent_clv + i);
-        v_prod = _mm256_mul_pd(v_prod,v_scale_factor);
-        _mm256_store_pd(parent_clv + i, v_prod);
+        v_prod = VEC::mult(v_prod,v_scale_factor);
+        VEC::store(parent_clv + i, v_prod);
       }
       parent_clv += span_padded;
       parent_scaler[n] += 1;
@@ -214,3 +212,4 @@ void pll_core_template_update_partial_ii(unsigned int sites,
 }
 
 
+      
