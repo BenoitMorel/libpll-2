@@ -59,35 +59,41 @@ if (NOT DEFINED ENABLE_AVX2)
 endif ()
 
 # check simd installed 
-# source: https://cmake.org/pipermail/cmake/2010-March/036115.html
 if (ENABLE_SSE)
-  set(CMAKE_REQUIRED_C_FLAGS_SAVE ${CMAKE_REQUIRED_C_FLAGS})
-  set(CMAKE_REQUIRED_C_FLAGS ${CMAKE_REQUIRED_C_FLAGS} "-msse3")
-  CHECK_INCLUDE_FILE("pmmintrin.h" CHECK_SSE_INCLUDE)
-  if (NOT CHECK_SSE_INCLUDE)
+  SET(_code " #include <immintrin.h>
+  int main() {__m128d a = _mm_setzero_pd();  return 1;}")
+  SET(_file ${CMAKE_CURRENT_BINARY_DIR}/testsse.c)
+  FILE(WRITE "${_file}" "${_code}")
+  TRY_COMPILE(SSE_COMPILED ${CMAKE_CURRENT_BINARY_DIR} ${_file}
+    COMPILE_DEFINITIONS "-msse3 ")
+  if (NOT SSE_COMPILED)
+    message(STATUS "Disable sse simd, because not supported") 
     set(ENABLE_SSE "False")
   endif()
 endif()
 if (ENABLE_AVX)
-  set(CMAKE_REQUIRED_C_FLAGS_SAVE ${CMAKE_REQUIRED_C_FLAGS})
-  set(CMAKE_REQUIRED_C_FLAGS ${CMAKE_REQUIRED_C_FLAGS} "-mavx")
-  CHECK_INCLUDE_FILE("immintrin.h" CHECK_AVX_INCLUDE)
-  if (NOT CHECK_AVX_INCLUDE)
+  SET(_code " #include <immintrin.h>
+  int main() {__m256d a = _mm256_setzero_pd ();  return 1;}")
+  SET(_file ${CMAKE_CURRENT_BINARY_DIR}/testavx.c)
+  FILE(WRITE "${_file}" "${_code}")
+  TRY_COMPILE(AVX_COMPILED ${CMAKE_CURRENT_BINARY_DIR} ${_file}
+    COMPILE_DEFINITIONS "-mavx ")
+  if (NOT AVX_COMPILED)
+    message(STATUS "Disable avx simd, because not supported") 
     set(ENABLE_AVX "False")
   endif()
-  set(CMAKE_REQUIRED_C_FLAGS ${CMAKE_REQUIRED_C_FLAGS_SAVE})
 endif()
 if (ENABLE_AVX2)
   SET(_code " #include <immintrin.h>
-    int main() {__m256d a, b, c; _mm256_fmadd_pd(a, b, c); return 1;}")
+  int main() {__m256i a, b; b =  _mm256_abs_epi16(a); return 1;}")
   SET(_file ${CMAKE_CURRENT_BINARY_DIR}/testavx2.c)
   FILE(WRITE "${_file}" "${_code}")
   TRY_COMPILE(AVX2_COMPILED ${CMAKE_CURRENT_BINARY_DIR} ${_file}
     COMPILE_DEFINITIONS "-mfma -mavx2 ")
   if (NOT AVX2_COMPILED)
+    message(STATUS "Disable avx2 simd, because not supported") 
     set(ENABLE_AVX2 "False")
   endif()
-  message(STATUS "AVX2 compiled: ${AVX2_COMPILED}")
 endif()
 
 
