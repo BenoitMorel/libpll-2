@@ -1,12 +1,36 @@
+cmake_minimum_required(VERSION 2.8)
+
 include(CheckIncludeFile) 
 
 set (LIBPLL_BASE_FLAGS "-Wall -Wsign-compare -D_GNU_SOURCE -O3 -fPIC ")
 
-file(GLOB LIBPLL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/compress.c
+set(LIBPLL_BISON_FLAGS "-y -d -p pll_utree_")
+set(LIBPLL_FLEX_FLAGS "-P pll_utree_ -o lex.yy.c")
+
+find_package(BISON)
+find_package(FLEX)
+BISON_TARGET(parse_utree_t 
+  ${CMAKE_CURRENT_SOURCE_DIR}/parse_utree.y ${CMAKE_CURRENT_BINARY_DIR}/parse_utree.c
+  COMPILE_FLAGS ${LIBPLL_BISON_FLAGS})
+FLEX_TARGET(lex_utree_t 
+  ${CMAKE_CURRENT_SOURCE_DIR}/lex_utree.l ${CMAKE_CURRENT_BINARY_DIR}/lex_utree.c
+  COMPILE_FLAGS ${LIBPLL_FLEX_FLAGS})
+ADD_FLEX_BISON_DEPENDENCY(lex_utree_t parse_utree_t)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+message(STATUS "generated ${BISON_parse_utree_t_OUTPUTS}")
+message(STATUS "generated ${FLEX_lex_utree_t_OUTPUTS}")
+
+set(LIBPLL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/compress.c
+  ${BISON_parse_utree_t_OUTPUTS}
+  ${FLEX_lex_utree_t_OUTPUTS}
   ${CMAKE_CURRENT_SOURCE_DIR}/core_derivatives.c
   ${CMAKE_CURRENT_SOURCE_DIR}/core_likelihood.c
   ${CMAKE_CURRENT_SOURCE_DIR}/core_partials.c
   ${CMAKE_CURRENT_SOURCE_DIR}/core_pmatrix.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/derivatives.c
   ${CMAKE_CURRENT_SOURCE_DIR}/fasta.c
   ${CMAKE_CURRENT_SOURCE_DIR}/fast_parsimony.c
   ${CMAKE_CURRENT_SOURCE_DIR}/gamma.c
@@ -33,18 +57,21 @@ file(GLOB LIBPLL_SSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/core_derivatives_sse.c
   ${CMAKE_CURRENT_SOURCE_DIR}/core_likelihood_sse.c
   ${CMAKE_CURRENT_SOURCE_DIR}/core_partials_sse.c
   ${CMAKE_CURRENT_SOURCE_DIR}/core_pmatrix_sse.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/fast_parsimony_sse.c
   )
 
 file(GLOB LIBPLL_AVX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/core_derivatives_avx.c
   ${CMAKE_CURRENT_SOURCE_DIR}/core_likelihood_avx.c
   ${CMAKE_CURRENT_SOURCE_DIR}/core_partials_avx.c
   ${CMAKE_CURRENT_SOURCE_DIR}/core_pmatrix_avx.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/fast_parsimony_avx.c
   )
 
 file(GLOB LIBPLL_AVX2_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/core_derivatives_avx2.c
   ${CMAKE_CURRENT_SOURCE_DIR}/core_likelihood_avx2.c
   ${CMAKE_CURRENT_SOURCE_DIR}/core_partials_avx2.c
   ${CMAKE_CURRENT_SOURCE_DIR}/core_pmatrix_avx2.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/fast_parsimony_avx2.c
   )
 
 # check that user did not disable simd
@@ -117,7 +144,6 @@ if (ENABLE_AVX2)
   set(LIBPLL_SOURCES ${LIBPLL_SOURCES} ${LIBPLL_AVX2_SOURCES})
 
 endif ()
-
 
 
 add_definitions(-DHAVE_X86INTRIN_H)
